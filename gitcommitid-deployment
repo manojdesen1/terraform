@@ -1,0 +1,41 @@
+pipeline {
+    agent any
+
+    environment {
+        GIT_USERNAME = credentials('git-username')
+        GIT_PASSWORD = credentials('git-password')
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    // Ask for commit ID
+                    def commitId = input(
+                        message: 'Please enter the commit ID:',
+                        parameters: [string(name: 'CommitID', defaultValue: '', description: 'The commit ID to checkout')]
+                    )
+                    // Checkout the specified commit
+                    checkout([$class: 'GitSCM', branches: [[name: commitId]], 
+                              userRemoteConfigs: [[url: 'https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/example/repo.git']]])
+                }
+            }
+        }
+        stage('Build') {
+            steps {
+                // Your build steps here
+            }
+        }
+        stage('Test') {
+            steps {
+                // Your test steps here
+            }
+        }
+        stage('Deploy') {
+            steps {
+                // Deployment using the checked out commit ID
+                sh "deploy_script.sh ${commitId}" // Assuming a deployment script is used
+            }
+        }
+    }
+}
